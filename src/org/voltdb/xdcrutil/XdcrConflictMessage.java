@@ -60,9 +60,7 @@ public class XdcrConflictMessage {
 	TimestampType m_conflictTimeststamp;
 
 	String m_JsonEncodedTuple;
-	
-	UserTable m_tuple;
-	
+		
 	//
 	
 	Gson gson = new Gson(); //TODO slow
@@ -320,6 +318,45 @@ public class XdcrConflictMessage {
 		
 
 	}
+	
+	/**
+     * Insert this row into VoltDB.
+     * @param theCallback
+     * @param theClient
+     * @param procedureName
+     * @throws NoConnectionsException
+     * @throws IOException
+     * @throws ProcCallException
+     */
+    public void insertToVoltDBUsingProcedure(ProcedureCallback theCallback, Client theClient, String procedureName)
+            throws NoConnectionsException, IOException, ProcCallException {
+
+            theClient.callProcedure(theCallback,procedureName ,
+                    // Metadata columns
+                    m_transactionId,
+                    m_exportGenerationTime,
+                    m_seqno,
+                    m_partitionId,
+                    m_siteId,
+                    m_exportOperation,
+                    // XDCR Columns
+                    m_eventTime,
+                    m_rowType.toString(),
+                    m_actionType.toString(),
+                    m_conflictType.toString(),
+                    XdcrUtils.mapBooleanToInt(m_primaryKeyConflict),
+                    XdcrUtils.mapBooleanToInt(m_wasAccepted),
+                    m_lastModClusterId,
+                    m_rowTimeststamp,
+                    XdcrUtils.mapBooleanToInt(m_isStillConsistent),
+                    m_tableName,
+                    m_currentClusterId,
+                    m_conflictTimeststamp,
+                    m_JsonEncodedTuple
+            );
+        
+
+    }
 
 	/**
 	 * Convenience method to create needed DDL. Note that we don't 'DR' this table.
@@ -330,7 +367,7 @@ public class XdcrConflictMessage {
 	 */
 	public static String[] toDDL(String tableName, String partitionColumnName, int jsonColSize) {
 
-		String[] results = new String[3];
+		String[] results = new String[4];
 
 		StringBuilder builder = new StringBuilder();
 
@@ -395,7 +432,7 @@ public class XdcrConflictMessage {
 		builder.append(",currentClusterId TINYINT NOT NULL ");
 		builder.append(System.lineSeparator());
 
-		builder.append(",conflictTimeststamp TIMESTAMP NOT NULL ");
+		builder.append(",conflictTimestamp TIMESTAMP NOT NULL ");
 		builder.append(System.lineSeparator());
 
 		builder.append(",inserttime TIMESTAMP NOT NULL ");
@@ -420,8 +457,163 @@ public class XdcrConflictMessage {
 
 		results[2] = builder.toString();
 
+        builder = new StringBuilder();
+
+        builder.append("CREATE INDEX ");
+        builder.append(tableName);
+        builder.append("_IX1 ON ");
+        builder.append(tableName);
+        builder.append(" (transactionId, CONFLICTTIMESTAMP, ");
+        builder.append(partitionColumnName);
+        builder.append(")");
+        builder.append(";");
+
+        results[3] = builder.toString();
+        
+
+        
 		return results;
 	}
+
+    /**
+     * @return the m_transactionId
+     */
+    public long getM_transactionId() {
+        return m_transactionId;
+    }
+
+    /**
+     * @return the m_exportGenerationTime
+     */
+    public TimestampType getM_exportGenerationTime() {
+        return m_exportGenerationTime;
+    }
+
+    /**
+     * @return the m_seqno
+     */
+    public long getM_seqno() {
+        return m_seqno;
+    }
+
+    /**
+     * @return the m_partitionId
+     */
+    public long getM_partitionId() {
+        return m_partitionId;
+    }
+
+    /**
+     * @return the m_siteId
+     */
+    public long getM_siteId() {
+        return m_siteId;
+    }
+
+    /**
+     * @return the m_exportOperation
+     */
+    public byte getM_exportOperation() {
+        return m_exportOperation;
+    }
+
+    /**
+     * @return the m_eventTime
+     */
+    public TimestampType getM_eventTime() {
+        return m_eventTime;
+    }
+
+    /**
+     * @return the m_rowType
+     */
+    public XdcrRowType getM_rowType() {
+        return m_rowType;
+    }
+
+    /**
+     * @return the m_actionType
+     */
+    public XdcrActionType getM_actionType() {
+        return m_actionType;
+    }
+
+    /**
+     * @return the m_conflictType
+     */
+    public XdcrConflictType getM_conflictType() {
+        return m_conflictType;
+    }
+
+    /**
+     * @return the m_primaryKeyConflict
+     */
+    public boolean isM_primaryKeyConflict() {
+        return m_primaryKeyConflict;
+    }
+
+    /**
+     * @return the m_wasAccepted
+     */
+    public boolean isM_wasAccepted() {
+        return m_wasAccepted;
+    }
+
+    /**
+     * @return the m_lastModClusterId
+     */
+    public byte getM_lastModClusterId() {
+        return m_lastModClusterId;
+    }
+
+    /**
+     * @return the m_rowTimeststamp
+     */
+    public TimestampType getM_rowTimeststamp() {
+        return m_rowTimeststamp;
+    }
+
+    /**
+     * @return the m_isStillConsistent
+     */
+    public boolean isM_isStillConsistent() {
+        return m_isStillConsistent;
+    }
+
+    /**
+     * @return the m_tableName
+     */
+    public String getM_tableName() {
+        return m_tableName;
+    }
+
+    /**
+     * @return the m_currentClusterId
+     */
+    public byte getM_currentClusterId() {
+        return m_currentClusterId;
+    }
+
+    /**
+     * @return the m_conflictTimeststamp
+     */
+    public TimestampType getM_conflictTimeststamp() {
+        return m_conflictTimeststamp;
+    }
+
+    /**
+     * @return the m_JsonEncodedTuple
+     */
+    public String getM_JsonEncodedTuple() {
+        return m_JsonEncodedTuple;
+    }
+
+    /**
+     * @return the gson
+     */
+    public Gson getGson() {
+        return gson;
+    }
 
 	
 	

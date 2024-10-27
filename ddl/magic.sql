@@ -1,0 +1,1 @@
+delete from XDCR_NEEDED_CHANGES a where exists (select null from XDCR_NEEDED_CHANGES b where b.PARTITIONID = a.PARTITIONID and b.siteid = a.siteid and b.tablename = a.tablename and b.currentclusterid = a.currentclusterid  and b.rowpk = a.rowpk and a.ACCEPTED_1_OR_0 = 0 and b.ACCEPTED_1_OR_0 = 1);

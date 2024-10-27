@@ -24,145 +24,171 @@ package org.voltdb.xdcrutil;
  */
 
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Properties;
+import java.util.UUID;
 
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.header.Headers;
 import org.voltdb.client.Client;
 import org.voltdb.client.ClientConfig;
 import org.voltdb.client.ClientFactory;
 
 import com.google.gson.Gson;
 
-public class ConflictReader {
+public class ConflictReader implements Runnable {
 
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
+    public static final int POLL_TIME_SECONDS = 15;
+    String kafkaHostName = null;
+    String voltHostName = null;
+    boolean finished = false;
 
-		try {
-			Client c = connectVoltDB("hardtofind");
+    public ConflictReader(String voltHostName, String kafkaHostName) {
+        super();
+        this.kafkaHostName = kafkaHostName;
+        this.voltHostName = voltHostName;
+    }
 
-			String[] conflictDDL = XdcrConflictMessage.toDDL("XDCR_CONFLICTS", "partitionId", 500);
+    /**
+     * Print a formatted message.
+     * 
+     * @param message
+     */
+    public static void msg(String message) {
 
-			for (int i = 0; i < conflictDDL.length; i++) {
-				msg(conflictDDL[i]);
-				c.callProcedure("@AdHoc", conflictDDL[i]);
-			}
+        SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date now = new Date();
+        String strDate = sdfDate.format(now);
+        System.out.println(strDate + ":Reader    :" + message);
 
-			
-			Properties props = new Properties();
-			props.put("bootstrap.servers", "hardtofind:9092");
-			props.put("group.id", "test3");
-//	     props.put("enable.auto.commit", "true");
-//	     props.put("auto.commit.interval.ms", "1000");
-			props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-			props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-			KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
-			consumer.subscribe(Arrays.asList("voltdbexportVOLTDB_AUTOGEN_XDCR_CONFLICTS_PARTITIONED"));
-			
-			Gson g = new Gson();
-			
-			while (true) {
-				
-				ConsumerRecords<String, String> records = consumer.poll(100);
-				for (ConsumerRecord<String, String> record : records) {
-					// System.out.printf("offset = %d, key = %s, value = %s%n", record.offset(),
-					// record.key(), record.value());
+    }
 
-					try {
-						XdcrConflictMessage newMessage = new XdcrConflictMessage(record.key(), record.value());
-						
-						
-						newMessage.m_JsonEncodedTuple = UserTable.makeXdcrConflictMessageGsonFriendly(newMessage.m_JsonEncodedTuple);
-						System.out.println(newMessage.m_JsonEncodedTuple);
-						
-						if (newMessage.m_JsonEncodedTuple != null){
-							UserTable t = g.fromJson(newMessage.m_JsonEncodedTuple, UserTable.class);
-							
-							System.out.println(t.toString());
-		
-						}
-						
-						if (false && newMessage.m_actionType == XdcrActionType.D
-								&& newMessage.m_tableName.equalsIgnoreCase("USER_RECENT_TRANSACTIONS")) {
+    /**
+     * Connect to VoltDB using a comma delimited hostname list.
+     * 
+     * @param commaDelimitedHostnames
+     * @return
+     * @throws Exception
+     */
+    private static Client connectVoltDB(String commaDelimitedHostnames) throws Exception {
+        Client client = null;
+        ClientConfig config = null;
 
-						} else {
-							if (newMessage.m_currentClusterId == 6) {
-								System.out.println(newMessage.toShortString());
-							}
+        try {
+            msg("Logging into VoltDB");
 
-							ComplainOnErrorCallback coec = new ComplainOnErrorCallback();
-							newMessage.insertToVoltDB(coec, c, "XDCR_CONFLICTS");
-							newMessage = null;
-						}
-					} catch (XdcrFormatException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-			}
+            config = new ClientConfig(); // "admin", "idontknow");
+            config.setTopologyChangeAware(true);
 
-		} catch (Exception e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+            client = ClientFactory.createClient(config);
 
-	}
+            String[] hostnameArray = commaDelimitedHostnames.split(",");
 
-	/**
-	 * Print a formatted message.
-	 * 
-	 * @param message
-	 */
-	public static void msg(String message) {
+            for (int i = 0; i < hostnameArray.length; i++) {
+                msg("Connect to " + hostnameArray[i] + "...");
+                try {
+                    client.createConnection(hostnameArray[i]);
+                } catch (Exception e) {
+                    msg(e.getMessage());
+                }
+            }
 
-		SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		Date now = new Date();
-		String strDate = sdfDate.format(now);
-		System.out.println(strDate + ":" + message);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("VoltDB connection failed.." + e.getMessage(), e);
+        }
 
-	}
+        return client;
 
-	/**
-	 * Connect to VoltDB using a comma delimited hostname list.
-	 * 
-	 * @param commaDelimitedHostnames
-	 * @return
-	 * @throws Exception
-	 */
-	private static Client connectVoltDB(String commaDelimitedHostnames) throws Exception {
-		Client client = null;
-		ClientConfig config = null;
+    }
 
-		try {
-			msg("Logging into VoltDB");
+    @Override
+    public void run() {
+        long lastRecordTimeMs = System.currentTimeMillis();
 
-			config = new ClientConfig(); // "admin", "idontknow");
-			config.setTopologyChangeAware(true);
+        try {
+            Client c = connectVoltDB(voltHostName);
+            Properties props = new Properties();
+            props.put("bootstrap.servers", kafkaHostName + ":9092");
+            props.put(ConsumerConfig.GROUP_ID_CONFIG, "ConflictReader");
+            props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+            props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+            props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+            props.put("max.poll.records", "50000");
+            KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
+            Thread.sleep(4000);
+            consumer.subscribe(Arrays.asList("voltdbexportVOLTDB_AUTOGEN_XDCR_CONFLICTS_PARTITIONED"));
 
-			client = ClientFactory.createClient(config);
+            Gson g = new Gson();
 
-			String[] hostnameArray = commaDelimitedHostnames.split(",");
+            while (true) {
 
-			for (int i = 0; i < hostnameArray.length; i++) {
-				msg("Connect to " + hostnameArray[i] + "...");
-				try {
-					client.createConnection(hostnameArray[i]);
-				} catch (Exception e) {
-					msg(e.getMessage());
-				}
-			}
+                msg("polling Kafka on " + kafkaHostName + " for " + POLL_TIME_SECONDS + " seconds....");
+                ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(POLL_TIME_SECONDS));
+                msg("Got " + records.count());
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new Exception("VoltDB connection failed.." + e.getMessage(), e);
-		}
+                if (records.count() == 0 && finished
+                        && (System.currentTimeMillis() - lastRecordTimeMs > (POLL_TIME_SECONDS * 1000))) {
+                    break;
+                } else if (records.count() > 0) {
+                    lastRecordTimeMs = System.currentTimeMillis();
+                }
 
-		return client;
+                for (ConsumerRecord<String, String> record : records) {
 
-	}
+                    try {
+
+                        XdcrConflictMessage newMessage = new XdcrConflictMessage(record.key(), record.value());
+
+                        newMessage.m_JsonEncodedTuple = UserTable
+                                .makeXdcrConflictMessageGsonFriendly(newMessage.m_JsonEncodedTuple);
+
+                        if (newMessage.m_JsonEncodedTuple != null) {
+                            UserTable t = g.fromJson(newMessage.m_JsonEncodedTuple, UserTable.class);
+
+                        }
+
+                        if (newMessage.m_actionType == XdcrActionType.D
+                                && newMessage.m_tableName.equalsIgnoreCase("USER_RECENT_TRANSACTIONS")) {
+
+                        } else {
+//                            if (newMessage.m_currentClusterId == 6) {
+//                                System.out.println(newMessage.toShortString());
+//                            }
+
+                          //  if (!newMessage.isM_wasAccepted()) {
+
+                                ComplainOnErrorCallback coec = new ComplainOnErrorCallback();
+                                newMessage.insertToVoltDBUsingProcedure(coec, c, "ResolveConflict");
+                                newMessage = null;
+                          //  }
+                        }
+                    } catch (XdcrFormatException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            consumer.close();
+            msg("Reader Finished");
+        } catch (Exception e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
+    }
+
+    /**
+     * @param finished the finished to set
+     */
+    public void requestFinish() {
+        msg("told to finish");
+        this.finished = true;
+    }
 
 }
