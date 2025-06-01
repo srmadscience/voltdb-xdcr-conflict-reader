@@ -305,6 +305,8 @@ public class ConflictGenerator {
                 failcount++;
             }
 
+            StringBuffer badIds = new StringBuffer();
+
             for (int i = 0; i < userCount; i++) {
 
                 if (i % 1000 == 1) {
@@ -329,15 +331,21 @@ public class ConflictGenerator {
                     if (acceptedChangeTotal % 3 != 0) {
                         msg(i + "ERROR:GREPME:" + acceptedChangeTotal + " accepted changes not divisible by 3");
                         failcount++;
+                        badIds.append(',');
+                        badIds.append(i);
                     } else if (unacceptedChangeTotal % 3 != 0) {
                         msg(i + "ERROR:GREPME:" + ":" + unacceptedChangeTotal
                                 + " unaccepted changes not divisible by 3");
                         failcount++;
+                        badIds.append(',');
+                        badIds.append(i);
                     }
 
                     msg("ERROR:GREPME:" + i + ":Expected " + expectedTotal + " from " + userTranCount[i]
                             + " transactions, got " + inUsers + "+" + bufferedChanges + ", = "
                             + (inUsers + bufferedChanges) + " out by " + ((inUsers + bufferedChanges) - expectedTotal));
+                    badIds.append(',');
+                    badIds.append(i);
                     failcount++;
                     msg("ERROR:GREPME:" + i + ":" + acceptedChangeTotal + " accepted changes reported");
                     msg("ERROR:GREPME:" + i + ":" + unacceptedChangeTotal + " unaccepted changes reported");
@@ -357,6 +365,7 @@ public class ConflictGenerator {
             msg("Over  " + sites.length + " sites...");
             conflictCount /= sites.length;
             msg("so  " + conflictCount + " conflicts...");
+            msg("bad Ids:" + badIds.toString());
 
             msg("Checking to see if @Statistics is correct...");
             long[] statsReportedConflicts = checkConflictStatsBalance(sites, siteConflicts);
@@ -469,14 +478,13 @@ public class ConflictGenerator {
         }
 
         for (int i = 0; i < sites.length; i++) {
-            msg("Site " + i + " saw (total/delta) " + conflictCount[i] + "/" + (conflictCount[i] - priorConflictCount[i])
-                    + " conflicts");
+            msg("Site " + i + " saw (total/delta) " + conflictCount[i] + "/"
+                    + (conflictCount[i] - priorConflictCount[i]) + " conflicts");
 
             conflictCount[i] -= priorConflictCount[i];
 
             if (conflictCount[i] != conflictCount[0]) {
-                msg("Error: Calculated Relative count " + conflictCount[i] + " disagrees with "
-                        + conflictCount[0]);
+                msg("Error: Calculated Relative count " + conflictCount[i] + " disagrees with " + conflictCount[0]);
             }
         }
 
