@@ -22,10 +22,11 @@
  */
 package conflictresolve;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 
-import org.apache.commons.codec.binary.StringUtils;
+//import org.apache.commons.codec.binary.StringUtils;
 import org.voltdb.SQLStmt;
 import org.voltdb.VoltProcedure;
 import org.voltdb.VoltProcedure.VoltAbortException;
@@ -60,6 +61,27 @@ public class ResolveConflict extends VoltProcedure {
             + "             conflictTimestamp,inserttime, \n"
             + "             tupleJson,rowPk) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW,?,?);");
   
+    public static final SQLStmt insertConflictRaw = new SQLStmt(
+            "INSERT INTO xdcr_conflicts_raw  (transactionId,\n"
+            + "             exportGenerationTime,\n"
+            + "             seqno,\n"
+            + "             partitionId,\n"
+            + "             siteId,\n"
+            + "             exportOperation,\n"
+            + "             eventTime,\n"
+            + "             XdcrRowType,\n"
+            + "             XdcractionType,\n"
+            + "             XdcrconflictType,\n"
+            + "             primaryKeyConflict,\n"
+            + "             wasAccepted,\n"
+            + "             lastModClusterId,\n"
+            + "             rowTimestamp,\n"
+            + "             isConsistant,\n"
+            + "             tableName,\n"
+            + "             currentClusterId,\n"
+            + "             conflictTimestamp,inserttime, \n"
+            + "             tupleJson,rowPk) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW,?,?);");
+  
 
   
     public static final SQLStmt getRow = new SQLStmt(
@@ -75,16 +97,26 @@ public class ResolveConflict extends VoltProcedure {
             + "AND rowpk = ? AND XDCRROWTYPE = ?;");
  
     
-    public static final SQLStmt insertLoss = new SQLStmt(
-            "INSERT INTO XDCR_NEEDED_CHANGES  (transactionId,\n"
+    public static final SQLStmt upsertLoss = new SQLStmt(
+            "UPSERT INTO XDCR_NEEDED_CHANGES  (transactionId,\n"
             + "             partitionId,\n"
             + "             siteId, tableName, \n"
-            + "             currentClusterId,\n"
+            + "             winningClusterId,\n"
             + "             CONFLICTTIMESTAMP,inserttime, \n"
-            + "             tupleJson_ext,tupleJson_exp,tupleJson_new,rowpk,resolution,accepted_1_or_0) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);");
+            + "             tupleJson_ext,tupleJson_exp,tupleJson_new"
+            + "            ,rowpk,resolution,accepted_1_or_0,losingClusterId,lostbymicros,observingClusterId) "
+            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);");
    
-  
-	// @formatter:on
+   public static final SQLStmt flagAsOvertakenByEvents = new SQLStmt("UPDATE xdcr_needed_changes "
+           + "SET OBE = ? "
+           + "where tablename = ? "
+           + "and rowpk = ? "
+           + "and ACCEPTED_1_OR_0 = 0 "
+           + "and OBE IS NULL "
+    + "and TUPLEJSON_NEW like '%\"LAST_TX\":\"'||?||'\"%'");
+   //TODO add conflicttimestamp
+   
+ 	// @formatter:on
 
     public VoltTable[] run(long m_transactionId, TimestampType m_exportGenerationTime, long m_seqno, long m_partitionId,
             long m_siteId, long m_exportOperation, TimestampType m_eventTime, String m_rowType, String m_actionType,
@@ -92,9 +124,9 @@ public class ResolveConflict extends VoltProcedure {
             TimestampType m_rowTimeststamp, int m_isStillConsistent, String m_tableName, int m_currentClusterId,
             TimestampType m_conflictTimestamp, String m_JsonEncodedTuple) throws VoltAbortException {
 
-        if (true || m_wasAccepted == 0) {
+        if (m_tableName.equals("BUSY_USERS")) {
 
-            final String rowPk = getPKAsTabString(m_JsonEncodedTuple);
+            String rowPk = getPKAsTabString(m_JsonEncodedTuple);
 
             voltQueueSQL(insertConflict, m_transactionId, m_exportGenerationTime, m_seqno, m_partitionId, m_siteId,
                     m_exportOperation, m_eventTime, m_rowType, m_actionType, m_conflictType, m_primaryKeyConflict,
@@ -105,35 +137,62 @@ public class ResolveConflict extends VoltProcedure {
             voltQueueSQL(getRow, m_currentClusterId, m_tableName, m_conflictTimestamp, rowPk, "EXP");
             voltQueueSQL(getRow, m_currentClusterId, m_tableName, m_conflictTimestamp, rowPk, "NEW");
 
+            voltQueueSQL(insertConflictRaw, m_transactionId, m_exportGenerationTime, m_seqno, m_partitionId, m_siteId,
+                    m_exportOperation, m_eventTime, m_rowType, m_actionType, m_conflictType, m_primaryKeyConflict,
+                    m_wasAccepted, m_lastModClusterId, m_rowTimeststamp, m_isStillConsistent, m_tableName,
+                    m_currentClusterId, m_conflictTimestamp, m_JsonEncodedTuple, rowPk);
+
             VoltTable[] queryResults = voltExecuteSQL();
 
-            if (queryResults[1].advanceRow() &&
-                    queryResults[2].advanceRow() && 
-                    queryResults[3].advanceRow()) {
+            if (queryResults[1].advanceRow() && queryResults[2].advanceRow() && queryResults[3].advanceRow()) {
 
                 long accepted = queryResults[1].getLong("wasAccepted");
-                
+
                 String ext = queryResults[1].getString("tupleJson");
                 String exp = queryResults[2].getString("tupleJson");
                 String newJson = queryResults[3].getString("tupleJson");
                 
-                long extAmount = getAmount(ext);
+                long losingSite = queryResults[1].getLong("lastModClusterId");
+                long winningSite = queryResults[3].getLong("lastModClusterId");
+ 
+                long lostByMicros = queryResults[1].getTimestampAsTimestamp("ROWTIMESTAMP").getTime() -
+                        queryResults[3].getTimestampAsTimestamp("ROWTIMESTAMP").getTime();
+
+
+                //long extAmount = getAmount(ext);
                 long expAmount = getAmount(exp);
                 long newAmount = getAmount(newJson);
                 long fixAmount = (newAmount - expAmount);
-                
-//                if (m_wasAccepted == 1) {
-//                    fixAmount = fixAmount * -1;
-//                }
-                
+
                 voltQueueSQL(delRow, m_currentClusterId, m_tableName, m_conflictTimestamp, rowPk, "EXT");
                 voltQueueSQL(delRow, m_currentClusterId, m_tableName, m_conflictTimestamp, rowPk, "EXP");
                 voltQueueSQL(delRow, m_currentClusterId, m_tableName, m_conflictTimestamp, rowPk, "NEW");
-                
-                voltQueueSQL(insertLoss, m_transactionId, m_partitionId, m_siteId, m_tableName,
-                        m_lastModClusterId, m_conflictTimestamp, this.getTransactionTime(), ext, exp,
-                        newJson, rowPk, fixAmount,accepted);
 
+                voltQueueSQL(upsertLoss, m_transactionId, m_partitionId, m_siteId, m_tableName, winningSite,
+                        m_conflictTimestamp, this.getTransactionTime(), ext, exp, newJson
+                        , rowPk, fixAmount, accepted,losingSite,lostByMicros,m_currentClusterId);
+
+                long[] ancestorTransactions = getTxHist(newJson);
+
+                
+                if (m_wasAccepted == 1) {
+
+ 
+                    for (int i = 0; i < (ancestorTransactions.length); i++) {
+
+                        // if (rowPk.equals("0")) {
+                        //System.out.println("Need Tx " + rowPk + " " + ancestorTransactions[i]);
+                        // }
+
+                        // UPDATE xdcr_needed_changes SET OBE = ? where tablename = 'BUSY_USERS' and
+                        // rowpk = '0' and ACCEPTED_1_OR_0 = 0 and TUPLEJSON_NEW like '%"HIST":";1%';
+                        voltQueueSQL(flagAsOvertakenByEvents, ancestorTransactions[i], m_tableName, rowPk,
+                                ancestorTransactions[i] + "");
+
+                    }
+                } else {
+                    
+                }
 
             }
         }
@@ -145,12 +204,35 @@ public class ResolveConflict extends VoltProcedure {
      * @return
      */
     private String getPKAsTabString(String m_JsonEncodedTuple) {
-        return m_JsonEncodedTuple.split(",")[1].split("\"")[3];
+        return m_JsonEncodedTuple.split(",")[3].split("\"")[3];
     }
 
     private long getAmount(String value) {
         String valueAsText = value.split(",")[0].split("\"")[3];
         return Long.parseLong(valueAsText);
+    }
+
+    private long[] getTxHist(String value) {
+        long[] results = new long[0];
+        if (value != null && value.length() > 0) {
+            String valueAsText = value.split(",")[1].split("\"")[3];
+            // System.out.println(valueAsText);
+            String[] valueAsLongs = valueAsText.substring(1).split(";");
+            ArrayList<Long> firstResults = new ArrayList<Long>();
+            for (int i = 0; i < valueAsLongs.length; i++) {
+                if (valueAsLongs[i] != null && valueAsLongs[i].length() > 0) {
+                    firstResults.add(Long.parseLong(valueAsLongs[i]));
+                }
+
+            }
+
+            results = new long[firstResults.size()];
+            for (int i = 0; i < firstResults.size(); i++) {
+                results[i] = (long) firstResults.get(i);
+            }
+
+        }
+        return results;
     }
 
 }

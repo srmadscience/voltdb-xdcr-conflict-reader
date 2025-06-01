@@ -24,8 +24,8 @@ package conflictresolve;
 
 import java.util.Date;
 import java.util.HashMap;
-
-import org.apache.commons.codec.binary.StringUtils;
+//
+//import org.apache.commons.codec.binary.StringUtils;
 import org.voltdb.SQLStmt;
 import org.voltdb.VoltProcedure;
 import org.voltdb.VoltProcedure.VoltAbortException;
