@@ -20,46 +20,46 @@ public class XdcrConflictMessage {
 	// Metadata columns
 	// See https://docs.voltdb.com/UsingVoltDB/exportexport.php#ExportMetadataTable
 
-	long m_transactionId;
+    public long m_transactionId;
 
-	TimestampType m_exportGenerationTime;
+	public TimestampType m_exportGenerationTime;
 
-	long m_seqno;
+	public long m_seqno;
 
-	long m_partitionId;
+	public long m_partitionId;
 
-	long m_siteId;
+	public long m_siteId;
 
-	byte m_exportOperation;
+	public byte m_exportOperation;
 
 	// XDCR Columns
 	// See https://docs.voltdb.com/UsingVoltDB/DbRepHowToActive.php#DbRepActiveLogTab
 
-	TimestampType m_eventTime;
+	public TimestampType m_eventTime;
 
-	XdcrRowType m_rowType;
+	public XdcrRowType m_rowType;
 
-	XdcrActionType m_actionType;
+	public XdcrActionType m_actionType;
 
-	XdcrConflictType m_conflictType;
+	public XdcrConflictType m_conflictType;
 
-	boolean m_primaryKeyConflict;
+	public boolean m_primaryKeyConflict;
 
-	boolean m_wasAccepted;
+	public boolean m_wasAccepted;
 
-	byte m_lastModClusterId;
+	public byte m_lastModClusterId;
 
-	TimestampType m_rowTimeststamp;
+	public TimestampType m_rowTimeststamp;
 
 	boolean m_isStillConsistent;
 
-	String m_tableName;
+	public String m_tableName;
 
-	byte m_currentClusterId;
+	public byte m_currentClusterId;
 
-	TimestampType m_conflictTimeststamp;
+	public TimestampType m_conflictTimeststamp;
 
-	String m_JsonEncodedTuple;
+	public String m_JsonEncodedTuple;
 		
 	//
 	
@@ -613,6 +613,146 @@ public class XdcrConflictMessage {
      */
     public Gson getGson() {
         return gson;
+    }
+
+    /**
+     * @param m_transactionId the m_transactionId to set
+     */
+    public void setM_transactionId(long m_transactionId) {
+        this.m_transactionId = m_transactionId;
+    }
+
+    /**
+     * @param m_exportGenerationTime the m_exportGenerationTime to set
+     */
+    public void setM_exportGenerationTime(TimestampType m_exportGenerationTime) {
+        this.m_exportGenerationTime = m_exportGenerationTime;
+    }
+
+    /**
+     * @param m_seqno the m_seqno to set
+     */
+    public void setM_seqno(long m_seqno) {
+        this.m_seqno = m_seqno;
+    }
+
+    /**
+     * @param m_partitionId the m_partitionId to set
+     */
+    public void setM_partitionId(long m_partitionId) {
+        this.m_partitionId = m_partitionId;
+    }
+
+    /**
+     * @param m_siteId the m_siteId to set
+     */
+    public void setM_siteId(long m_siteId) {
+        this.m_siteId = m_siteId;
+    }
+
+    /**
+     * @param m_exportOperation the m_exportOperation to set
+     */
+    public void setM_exportOperation(byte m_exportOperation) {
+        this.m_exportOperation = m_exportOperation;
+    }
+
+    /**
+     * @param m_eventTime the m_eventTime to set
+     */
+    public void setM_eventTime(TimestampType m_eventTime) {
+        this.m_eventTime = m_eventTime;
+    }
+
+    /**
+     * @param m_rowType the m_rowType to set
+     */
+    public void setM_rowType(XdcrRowType m_rowType) {
+        this.m_rowType = m_rowType;
+    }
+
+    /**
+     * @param m_actionType the m_actionType to set
+     */
+    public void setM_actionType(XdcrActionType m_actionType) {
+        this.m_actionType = m_actionType;
+    }
+
+    /**
+     * @param m_conflictType the m_conflictType to set
+     */
+    public void setM_conflictType(XdcrConflictType m_conflictType) {
+        this.m_conflictType = m_conflictType;
+    }
+
+    /**
+     * @param m_primaryKeyConflict the m_primaryKeyConflict to set
+     */
+    public void setM_primaryKeyConflict(boolean m_primaryKeyConflict) {
+        this.m_primaryKeyConflict = m_primaryKeyConflict;
+    }
+
+    /**
+     * @param m_wasAccepted the m_wasAccepted to set
+     */
+    public void setM_wasAccepted(boolean m_wasAccepted) {
+        this.m_wasAccepted = m_wasAccepted;
+    }
+
+    /**
+     * @param m_lastModClusterId the m_lastModClusterId to set
+     */
+    public void setM_lastModClusterId(byte m_lastModClusterId) {
+        this.m_lastModClusterId = m_lastModClusterId;
+    }
+
+    /**
+     * @param m_rowTimeststamp the m_rowTimeststamp to set
+     */
+    public void setM_rowTimeststamp(TimestampType m_rowTimeststamp) {
+        this.m_rowTimeststamp = m_rowTimeststamp;
+    }
+
+    /**
+     * @param m_isStillConsistent the m_isStillConsistent to set
+     */
+    public void setM_isStillConsistent(boolean m_isStillConsistent) {
+        this.m_isStillConsistent = m_isStillConsistent;
+    }
+
+    /**
+     * @param m_tableName the m_tableName to set
+     */
+    public void setM_tableName(String m_tableName) {
+        this.m_tableName = m_tableName;
+    }
+
+    /**
+     * @param m_currentClusterId the m_currentClusterId to set
+     */
+    public void setM_currentClusterId(byte m_currentClusterId) {
+        this.m_currentClusterId = m_currentClusterId;
+    }
+
+    /**
+     * @param m_conflictTimeststamp the m_conflictTimeststamp to set
+     */
+    public void setM_conflictTimeststamp(TimestampType m_conflictTimeststamp) {
+        this.m_conflictTimeststamp = m_conflictTimeststamp;
+    }
+
+    /**
+     * @param m_JsonEncodedTuple the m_JsonEncodedTuple to set
+     */
+    public void setM_JsonEncodedTuple(String m_JsonEncodedTuple) {
+        this.m_JsonEncodedTuple = m_JsonEncodedTuple;
+    }
+
+    /**
+     * @param gson the gson to set
+     */
+    public void setGson(Gson gson) {
+        this.gson = gson;
     }
 
 	
