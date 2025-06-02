@@ -1,0 +1,98 @@
+2025-06-02 09:15:51:Generator :Parameters:[9900, 1, 3, 1, 0, 10.13.1.20, 10.13.1.21, 10.13.1.22]
+2025-06-02 09:15:51:Reader    :Kafka=10.13.1.20, volt=10.13.1.21
+2025-06-02 09:15:51:Generator :Logging into VoltDB
+2025-06-02 09:15:52:Generator :Connect to '10.13.1.21'...
+2025-06-02 09:15:52:Generator :Logging into VoltDB
+2025-06-02 09:15:52:Generator :Connect to '10.13.1.22'...
+2025-06-02 09:15:52:Generator :Site 0:DROP PROCEDURE inc_busy_user IF EXISTS;
+2025-06-02 09:15:52:Generator :Site 0:DROP PROCEDURE get_unaccepted_change_total IF EXISTS;
+2025-06-02 09:15:53:Generator :Site 0:DROP PROCEDURE get_rejected_change_total IF EXISTS;
+2025-06-02 09:15:53:Generator :Site 0:DROP PROCEDURE get_accepted_change_total IF EXISTS;
+2025-06-02 09:15:54:Generator :Site 0:DROP TABLE busy_users IF EXISTS;
+2025-06-02 09:15:54:Generator :Site 0:CREATE TABLE busy_users (userid bigint not null primary key, a_number bigint not null, last_tx bigint, hist varchar(8000));
+2025-06-02 09:15:54:Generator :Site 0:PARTITION TABLE busy_users ON COLUMN userid;
+2025-06-02 09:15:55:Generator :Site 0:DR TABLE busy_users;
+2025-06-02 09:15:55:Generator :Site 0:CREATE INDEX uu_idx1 ON busy_users(a_number);
+2025-06-02 09:15:56:Generator :Site 0:DROP TABLE busy_user_txs IF EXISTS;
+2025-06-02 09:15:56:Generator :Site 0:CREATE TABLE busy_user_txs (userid bigint not null , last_tx bigint, last_delta bigint, siteid bigint, insert_date timestamp , primary key (userid,last_tx));
+2025-06-02 09:15:57:Generator :Site 0:PARTITION TABLE busy_user_txs ON COLUMN userid;
+2025-06-02 09:15:57:Generator :Site 0:DR TABLE busy_user_txs;
+2025-06-02 09:15:57:Generator :Site 0:CREATE PROCEDURE inc_busy_user PARTITION ON TABLE busy_users COLUMN userid PARAMETER 3  AS UPDATE busy_users SET a_number = a_number + ?, last_tx = ?, hist = substring(hist||?||';',1,8000) WHERE userid = CAST(? AS BIGINT);
+2025-06-02 09:15:58:Generator :Site 1:DROP PROCEDURE inc_busy_user IF EXISTS;
+2025-06-02 09:15:58:Generator :Site 1:DROP PROCEDURE get_unaccepted_change_total IF EXISTS;
+2025-06-02 09:15:59:Generator :Site 1:DROP PROCEDURE get_rejected_change_total IF EXISTS;
+2025-06-02 09:15:59:Generator :Site 1:DROP PROCEDURE get_accepted_change_total IF EXISTS;
+2025-06-02 09:16:00:Generator :Site 1:DROP TABLE busy_users IF EXISTS;
+2025-06-02 09:16:00:Generator :Site 1:CREATE TABLE busy_users (userid bigint not null primary key, a_number bigint not null, last_tx bigint, hist varchar(8000));
+2025-06-02 09:16:00:Generator :Site 1:PARTITION TABLE busy_users ON COLUMN userid;
+2025-06-02 09:16:01:Generator :Site 1:DR TABLE busy_users;
+2025-06-02 09:16:01:Generator :Site 1:CREATE INDEX uu_idx1 ON busy_users(a_number);
+2025-06-02 09:16:01:Generator :Site 1:DROP TABLE busy_user_txs IF EXISTS;
+2025-06-02 09:16:02:Generator :Site 1:CREATE TABLE busy_user_txs (userid bigint not null , last_tx bigint, last_delta bigint, siteid bigint, insert_date timestamp , primary key (userid,last_tx));
+2025-06-02 09:16:02:Generator :Site 1:PARTITION TABLE busy_user_txs ON COLUMN userid;
+2025-06-02 09:16:03:Generator :Site 1:DR TABLE busy_user_txs;
+2025-06-02 09:16:03:Generator :Site 1:CREATE PROCEDURE inc_busy_user PARTITION ON TABLE busy_users COLUMN userid PARAMETER 3  AS UPDATE busy_users SET a_number = a_number + ?, last_tx = ?, hist = substring(hist||?||';',1,8000) WHERE userid = CAST(? AS BIGINT);
+2025-06-02 09:16:03:Generator :Site 0:CREATE PROCEDURE get_rejected_change_total  AS select sum(cast(resolution as bigint)) rejected from XDCR_NEEDED_CHANGES WHERE ACCEPTED_1_OR_0 = 0 AND OBE IS NULL AND OBSERVINGCLUSTERID IN (WINNINGCLUSTERID, LOSINGCLUSTERID) and rowpk = ?;
+2025-06-02 09:16:04:Generator :Site 0:CREATE PROCEDURE get_accepted_change_total AS select count(*) accepted  FROM XDCR_CONFLICTS_RAW where WASACCEPTED = 1 and rowpk = ?;
+2025-06-02 09:16:04:Generator :Site 0:CREATE PROCEDURE get_unaccepted_change_total AS select count(*) how_many  FROM XDCR_CONFLICTS_RAW where WASACCEPTED = 0 and rowpk = ?;
+2025-06-02 09:16:05:Generator :PARAMS = SLEEP_MS=9900 USER_COUNT=1
+2025-06-02 09:16:05:Generator :Site 0:DELETE FROM XDCR_CONFLICTS;
+2025-06-02 09:16:05:Reader    :Logging into VoltDB
+2025-06-02 09:16:05:Reader    :Connect to 10.13.1.21...
+2025-06-02 09:16:05:Generator :Site 0:DELETE FROM XDCR_CONFLICTS_RAW;
+2025-06-02 09:16:05:Generator :Site 0:DELETE FROM XDCR_NEEDED_CHANGES;
+2025-06-02 09:16:05:Generator :Deleting users from 0 to 0
+2025-06-02 09:16:05:Generator :Site [badger.chello.ie/10.13.1.21:21212] has expected number of 0 rows
+2025-06-02 09:16:05:Generator :Site [rosal.chello.ie/10.13.1.22:21212] has expected number of 0 rows
+2025-06-02 09:16:05:Generator :Creating 1 users...
+2025-06-02 09:16:05:Generator :Site [badger.chello.ie/10.13.1.21:21212] has expected number of 1 rows
+2025-06-02 09:16:05:Generator :Site [rosal.chello.ie/10.13.1.22:21212] has 0 rows. Expecting 1
+2025-06-02 09:16:05:Generator :Waiting 1 second..
+2025-06-02 09:16:06:Generator :Site [badger.chello.ie/10.13.1.21:21212] has expected number of 1 rows
+2025-06-02 09:16:06:Generator :Site [rosal.chello.ie/10.13.1.22:21212] has 0 rows. Expecting 1
+2025-06-02 09:16:06:Generator :Waiting 1 second..
+2025-06-02 09:16:07:Generator :Site [badger.chello.ie/10.13.1.21:21212] has expected number of 1 rows
+2025-06-02 09:16:07:Generator :Site [rosal.chello.ie/10.13.1.22:21212] has expected number of 1 rows
+2025-06-02 09:16:12:Generator :Sleeping 6000ms so stats are clean... 
+2025-06-02 09:16:18:Generator :Saw  [0, 0] preexisting conflicts... 
+2025-06-02 09:16:18:Generator :Starting conflict run. RoundRobin = true random user = false randomButOnlyOnceOrder=false RANDOM_REUSE_MS=0
+2025-06-02 09:16:18:Generator :On event 0..
+2025-06-02 09:16:18:Generator :On event 0, sleep 9900 ms
+2025-06-02 09:16:28:Generator :On event 1, sleep 9900 ms
+2025-06-02 09:16:34:Reader    :Got 3
+2025-06-02 09:16:35:Reader    :Got 3
+2025-06-02 09:16:38:Generator :On event 2, sleep 9900 ms
+2025-06-02 09:16:43:Reader    :Got 3
+2025-06-02 09:16:44:Reader    :Got 3
+2025-06-02 09:16:48:Generator :Waiting 10 seconds
+2025-06-02 09:16:53:Reader    :Got 3
+2025-06-02 09:16:53:Reader    :Got 1
+2025-06-02 09:16:53:Reader    :Got 2
+2025-06-02 09:16:58:Reader    :told to finish
+2025-06-02 09:16:58:Generator :Waiting for conflict reader to finish...
+2025-06-02 09:17:38:Generator :Waiting for conflict reader to finish...
+2025-06-02 09:18:18:Generator :Waiting for conflict reader to finish...
+2025-06-02 09:18:53:Reader    :Got 0
+2025-06-02 09:18:53:Reader    :Reader Finished
+2025-06-02 09:18:58:Generator :0 failures. skips=0, passcount=1
+2025-06-02 09:18:58:Generator :tranGaps = 9907 SLEEP_MS=9900
+2025-06-02 09:18:58:Generator :Observed 18 raw conflicts
+2025-06-02 09:18:58:Generator :Which means 6 real conflicts
+2025-06-02 09:18:58:Generator :Over  2 sites...
+2025-06-02 09:18:58:Generator :so  3 conflicts...
+2025-06-02 09:18:58:Generator :bad Ids:
+2025-06-02 09:18:58:Generator :Checking to see if @Statistics is correct...
+2025-06-02 09:18:58:Generator :Sleeping 6000ms so stats are clean... 
+2025-06-02 09:19:04:Generator :Site [badger.chello.ie/10.13.1.21:21212] @Statistics DRCONFLICTS 0:
+2025-06-02 09:19:04:Generator :TIMESTAMP      HOST_ID  HOSTNAME  CLUSTER_ID  REMOTE_CLUSTER_ID  PARTITION_ID  TABLE_NAME  LAST_CONFLICT_TIMESTAMP     TOTAL_CONFLICT_COUNT  DIVERGENCE_COUNT  MISSING_ROW_COUNT  TIMESTAMP_MISMATCH_COUNT  CONSTRAINT_VIOLATION_COUNT 
+-------------- -------- --------- ----------- ------------------ ------------- ----------- --------------------------- --------------------- ----------------- ------------------ ------------------------- ---------------------------
+ 1748852344523        0 badger             21                 22             2 BUSY_USERS  2025-06-02 09:16:48.635000                      3                 0                  0                         3                           0
+
+2025-06-02 09:19:04:Generator :Site [rosal.chello.ie/10.13.1.22:21212] @Statistics DRCONFLICTS 0:
+2025-06-02 09:19:04:Generator :TIMESTAMP      HOST_ID  HOSTNAME  CLUSTER_ID  REMOTE_CLUSTER_ID  PARTITION_ID  TABLE_NAME  LAST_CONFLICT_TIMESTAMP     TOTAL_CONFLICT_COUNT  DIVERGENCE_COUNT  MISSING_ROW_COUNT  TIMESTAMP_MISMATCH_COUNT  CONSTRAINT_VIOLATION_COUNT 
+-------------- -------- --------- ----------- ------------------ ------------- ----------- --------------------------- --------------------- ----------------- ------------------ ------------------------- ---------------------------
+ 1748852344545        0 rosal              22                 21             2 BUSY_USERS  2025-06-02 09:16:49.270000                      3                 0                  0                         3                           0
+
+2025-06-02 09:19:04:Generator :Site 0 saw (total/delta) 3/3 conflicts
+2025-06-02 09:19:04:Generator :Site 1 saw (total/delta) 3/3 conflicts
+2025-06-02 09:19:04:Generator :Statistics agree on how many conflicts happened - 3

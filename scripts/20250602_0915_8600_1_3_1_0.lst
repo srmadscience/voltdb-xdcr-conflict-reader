@@ -1,0 +1,69 @@
+2025-06-02 09:57:17:Generator :Parameters:[8600, 1, 3, 1, 0, 10.13.1.20, 10.13.1.21, 10.13.1.22]
+2025-06-02 09:57:17:Reader    :Kafka=10.13.1.20, volt=10.13.1.21
+2025-06-02 09:57:17:Generator :Logging into VoltDB
+2025-06-02 09:57:17:Generator :Connect to '10.13.1.21'...
+2025-06-02 09:57:17:Generator :Logging into VoltDB
+2025-06-02 09:57:17:Generator :Connect to '10.13.1.22'...
+2025-06-02 09:57:17:Generator :PARAMS = SLEEP_MS=8600 USER_COUNT=1
+2025-06-02 09:57:17:Generator :Site 0:DELETE FROM XDCR_CONFLICTS;
+2025-06-02 09:57:17:Reader    :Logging into VoltDB
+2025-06-02 09:57:17:Reader    :Connect to 10.13.1.21...
+2025-06-02 09:57:17:Generator :Site 0:DELETE FROM XDCR_CONFLICTS_RAW;
+2025-06-02 09:57:17:Generator :Site 0:DELETE FROM XDCR_NEEDED_CHANGES;
+2025-06-02 09:57:17:Generator :Deleting users from 0 to 0
+2025-06-02 09:57:17:Generator :Site [badger.chello.ie/10.13.1.21:21212] has expected number of 0 rows
+2025-06-02 09:57:17:Generator :Site [rosal.chello.ie/10.13.1.22:21212] has 1 rows. Expecting 0
+2025-06-02 09:57:17:Generator :Waiting 1 second..
+2025-06-02 09:57:18:Generator :Site [badger.chello.ie/10.13.1.21:21212] has expected number of 0 rows
+2025-06-02 09:57:18:Generator :Site [rosal.chello.ie/10.13.1.22:21212] has 1 rows. Expecting 0
+2025-06-02 09:57:18:Generator :Waiting 1 second..
+2025-06-02 09:57:19:Generator :Site [badger.chello.ie/10.13.1.21:21212] has expected number of 0 rows
+2025-06-02 09:57:19:Generator :Site [rosal.chello.ie/10.13.1.22:21212] has expected number of 0 rows
+2025-06-02 09:57:19:Generator :Creating 1 users...
+2025-06-02 09:57:19:Generator :Site [badger.chello.ie/10.13.1.21:21212] has expected number of 1 rows
+2025-06-02 09:57:19:Generator :Site [rosal.chello.ie/10.13.1.22:21212] has 0 rows. Expecting 1
+2025-06-02 09:57:19:Generator :Waiting 1 second..
+2025-06-02 09:57:20:Generator :Site [badger.chello.ie/10.13.1.21:21212] has expected number of 1 rows
+2025-06-02 09:57:20:Generator :Site [rosal.chello.ie/10.13.1.22:21212] has expected number of 1 rows
+2025-06-02 09:57:25:Generator :Sleeping 6000ms so stats are clean... 
+2025-06-02 09:57:31:Generator :Saw  [39, 39] preexisting conflicts... 
+2025-06-02 09:57:31:Generator :Starting conflict run. RoundRobin = true random user = false randomButOnlyOnceOrder=false RANDOM_REUSE_MS=0
+2025-06-02 09:57:31:Generator :On event 0..
+2025-06-02 09:57:31:Generator :On event 0, sleep 8600 ms
+2025-06-02 09:57:40:Generator :On event 1, sleep 8600 ms
+2025-06-02 09:57:45:Reader    :Got 3
+2025-06-02 09:57:45:Reader    :Got 3
+2025-06-02 09:57:49:Generator :On event 2, sleep 8600 ms
+2025-06-02 09:57:54:Reader    :Got 3
+2025-06-02 09:57:55:Reader    :Got 3
+2025-06-02 09:57:57:Generator :Waiting 10 seconds
+2025-06-02 09:58:02:Reader    :Got 3
+2025-06-02 09:58:03:Reader    :Got 3
+2025-06-02 09:58:07:Reader    :told to finish
+2025-06-02 09:58:07:Generator :Waiting for conflict reader to finish...
+2025-06-02 09:58:47:Generator :Waiting for conflict reader to finish...
+2025-06-02 09:59:27:Generator :Waiting for conflict reader to finish...
+2025-06-02 10:00:03:Reader    :Got 0
+2025-06-02 10:00:03:Reader    :Reader Finished
+2025-06-02 10:00:07:Generator :0 failures. skips=0, passcount=1
+2025-06-02 10:00:07:Generator :tranGaps = 8604 SLEEP_MS=8600
+2025-06-02 10:00:07:Generator :Observed 18 raw conflicts
+2025-06-02 10:00:07:Generator :Which means 6 real conflicts
+2025-06-02 10:00:07:Generator :Over  2 sites...
+2025-06-02 10:00:07:Generator :so  3 conflicts...
+2025-06-02 10:00:07:Generator :bad Ids:
+2025-06-02 10:00:07:Generator :Checking to see if @Statistics is correct...
+2025-06-02 10:00:07:Generator :Sleeping 6000ms so stats are clean... 
+2025-06-02 10:00:13:Generator :Site [badger.chello.ie/10.13.1.21:21212] @Statistics DRCONFLICTS 0:
+2025-06-02 10:00:13:Generator :TIMESTAMP      HOST_ID  HOSTNAME  CLUSTER_ID  REMOTE_CLUSTER_ID  PARTITION_ID  TABLE_NAME  LAST_CONFLICT_TIMESTAMP     TOTAL_CONFLICT_COUNT  DIVERGENCE_COUNT  MISSING_ROW_COUNT  TIMESTAMP_MISMATCH_COUNT  CONSTRAINT_VIOLATION_COUNT 
+-------------- -------- --------- ----------- ------------------ ------------- ----------- --------------------------- --------------------- ----------------- ------------------ ------------------------- ---------------------------
+ 1748854813881        0 badger             21                 22             2 BUSY_USERS  2025-06-02 09:57:58.873000                     42                 0                  0                        42                           0
+
+2025-06-02 10:00:13:Generator :Site [rosal.chello.ie/10.13.1.22:21212] @Statistics DRCONFLICTS 0:
+2025-06-02 10:00:13:Generator :TIMESTAMP      HOST_ID  HOSTNAME  CLUSTER_ID  REMOTE_CLUSTER_ID  PARTITION_ID  TABLE_NAME  LAST_CONFLICT_TIMESTAMP     TOTAL_CONFLICT_COUNT  DIVERGENCE_COUNT  MISSING_ROW_COUNT  TIMESTAMP_MISMATCH_COUNT  CONSTRAINT_VIOLATION_COUNT 
+-------------- -------- --------- ----------- ------------------ ------------- ----------- --------------------------- --------------------- ----------------- ------------------ ------------------------- ---------------------------
+ 1748854813901        0 rosal              22                 21             2 BUSY_USERS  2025-06-02 09:57:58.506000                     42                 0                  0                        42                           0
+
+2025-06-02 10:00:13:Generator :Site 0 saw (total/delta) 42/3 conflicts
+2025-06-02 10:00:13:Generator :Site 1 saw (total/delta) 42/3 conflicts
+2025-06-02 10:00:13:Generator :Statistics agree on how many conflicts happened - 3

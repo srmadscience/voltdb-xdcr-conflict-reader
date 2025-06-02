@@ -1,0 +1,13 @@
+2025-06-02 09:14:56:Generator :Parameters:[10000, 1, 3, 1, 0, 10.13.1.20, 10.13.1.21, 10.13.1.22]
+2025-06-02 09:14:56:Reader    :Kafka=10.13.1.20, volt=10.13.1.21
+2025-06-02 09:14:56:Generator :Logging into VoltDB
+2025-06-02 09:14:57:Generator :Connect to '10.13.1.21'...
+2025-06-02 09:14:57:Generator :Logging into VoltDB
+2025-06-02 09:14:57:Generator :Connect to '10.13.1.22'...
+2025-06-02 09:14:57:Generator :Site 0:DROP PROCEDURE inc_busy_user IF EXISTS;
+2025-06-02 09:14:57:Generator :Site 0:DROP PROCEDURE get_unaccepted_change_total IF EXISTS;
+2025-06-02 09:14:58:Generator :Site 0:DROP PROCEDURE get_rejected_change_total IF EXISTS;
+2025-06-02 09:14:58:Generator :Site 0:DROP PROCEDURE get_accepted_change_total IF EXISTS;
+2025-06-02 09:14:58:Generator :Site 0:DROP TABLE busy_users IF EXISTS;
+2025-06-02 09:14:59:Generator :Site 0:CREATE TABLE busy_users (userid bigint not null primary key, a_number bigint not null, last_tx bigint, hist varchar(8000));
+2025-06-02 09:14:59:Generator :Site 0:PARTITION TABLE busy_users ON COLUMN userid;

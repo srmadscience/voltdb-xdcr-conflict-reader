@@ -1,5 +1,15 @@
 package org.voltdb.xdcrutil;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import org.voltdb.client.Client;
+import org.voltdb.client.ClientResponse;
+import org.voltdb.client.NoConnectionsException;
+import org.voltdb.client.ProcCallException;
+
 /* This file is part of VoltDB.
  * Copyright (C) 2008-2020 VoltDB Inc.
  *
@@ -101,6 +111,33 @@ public class XdcrUtils {
 		}
 
 		return 0;
+	}
+	
+	public static HashMap<String,List<String>> getPKs(Client c) throws NoConnectionsException, IOException, ProcCallException {
+	   
+	    HashMap<String,List<String>> pkMap = new HashMap<String,List<String>>();
+	    
+	    ClientResponse cr = c.callProcedure("@SystemCatalog", "PRIMARYKEYS");
+	    
+	    while (cr.getResults()[0].advanceRow()) {
+            String tableName = cr.getResults()[0].getString("TABLE_NAME");
+            String columnName = cr.getResults()[0].getString("COLUMN_NAME");
+            //long   columnSeq = cr.getResults()[0].getLong("KEY_SEQ");
+            
+            List<String> existingList = pkMap.get(tableName);
+            
+            if (existingList == null) {
+                existingList = new ArrayList<String>();
+                existingList.add(columnName);
+                pkMap.put(tableName, existingList);
+            } else {
+                existingList.add(columnName);
+            }
+            
+	    }
+	    
+	    return pkMap;
+	    
 	}
 
 

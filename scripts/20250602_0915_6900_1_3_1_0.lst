@@ -1,0 +1,38 @@
+2025-06-02 10:49:52:Generator :Parameters:[6900, 1, 3, 1, 0, 10.13.1.20, 10.13.1.21, 10.13.1.22]
+2025-06-02 10:49:52:Reader    :Kafka=10.13.1.20, volt=10.13.1.21
+2025-06-02 10:49:52:Generator :Logging into VoltDB
+2025-06-02 10:49:52:Generator :Connect to '10.13.1.21'...
+2025-06-02 10:49:52:Generator :Logging into VoltDB
+2025-06-02 10:49:52:Generator :Connect to '10.13.1.22'...
+2025-06-02 10:49:53:Generator :PARAMS = SLEEP_MS=6900 USER_COUNT=1
+2025-06-02 10:49:53:Generator :Site 0:DELETE FROM XDCR_CONFLICTS;
+2025-06-02 10:49:53:Reader    :Logging into VoltDB
+2025-06-02 10:49:53:Reader    :Connect to 10.13.1.21...
+2025-06-02 10:49:53:Generator :Site 0:DELETE FROM XDCR_CONFLICTS_RAW;
+2025-06-02 10:49:53:Generator :Site 0:DELETE FROM XDCR_NEEDED_CHANGES;
+2025-06-02 10:49:53:Generator :Deleting users from 0 to 0
+2025-06-02 10:49:53:Generator :Site [badger.chello.ie/10.13.1.21:21212] has expected number of 0 rows
+2025-06-02 10:49:53:Generator :Site [/10.13.1.22:21212] has 1 rows. Expecting 0
+2025-06-02 10:49:53:Generator :Waiting 1 second..
+2025-06-02 10:49:54:Generator :Site [badger.chello.ie/10.13.1.21:21212] has expected number of 0 rows
+2025-06-02 10:49:54:Generator :Site [rosal.chello.ie/10.13.1.22:21212] has expected number of 0 rows
+2025-06-02 10:49:54:Generator :Creating 1 users...
+2025-06-02 10:49:54:Generator :Site [badger.chello.ie/10.13.1.21:21212] has expected number of 1 rows
+2025-06-02 10:49:54:Generator :Site [rosal.chello.ie/10.13.1.22:21212] has 0 rows. Expecting 1
+2025-06-02 10:49:54:Generator :Waiting 1 second..
+2025-06-02 10:49:55:Generator :Site [badger.chello.ie/10.13.1.21:21212] has expected number of 1 rows
+2025-06-02 10:49:55:Generator :Site [rosal.chello.ie/10.13.1.22:21212] has 0 rows. Expecting 1
+2025-06-02 10:49:55:Generator :Waiting 1 second..
+2025-06-02 10:49:56:Generator :Site [badger.chello.ie/10.13.1.21:21212] has expected number of 1 rows
+2025-06-02 10:49:56:Generator :Site [rosal.chello.ie/10.13.1.22:21212] has expected number of 1 rows
+2025-06-02 10:50:01:Generator :Sleeping 6000ms so stats are clean... 
+2025-06-02 10:50:07:Generator :Saw  [90, 90] preexisting conflicts... 
+2025-06-02 10:50:07:Generator :Starting conflict run. RoundRobin = true random user = false randomButOnlyOnceOrder=false RANDOM_REUSE_MS=0
+2025-06-02 10:50:07:Generator :On event 0..
+2025-06-02 10:50:07:Generator :On event 0, sleep 6900 ms
+2025-06-02 10:50:14:Generator :On event 1, sleep 6900 ms
+2025-06-02 10:50:18:Reader    :Got 3
+2025-06-02 10:50:19:Reader    :Got 3
+2025-06-02 10:50:21:Generator :On event 2, sleep 6900 ms
+2025-06-02 10:50:25:Reader    :Got 2
+2025-06-02 10:50:25:Reader    :Got 1

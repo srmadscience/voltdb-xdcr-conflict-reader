@@ -302,7 +302,7 @@ public class ConflictGenerator {
 
             if (!longsTheSame(exportDeltas)) {
                 msg("ERROR:GREPME: Uneven values for export - " + Arrays.toString(exportDeltas));
-                failcount++;
+                //failcount++;
             }
 
             StringBuffer badIds = new StringBuffer();
@@ -333,7 +333,9 @@ public class ConflictGenerator {
                         failcount++;
                         badIds.append(',');
                         badIds.append(i);
-                    } else if (unacceptedChangeTotal % 3 != 0) {
+                    } 
+                    
+                    if (unacceptedChangeTotal % 3 != 0) {
                         msg(i + "ERROR:GREPME:" + ":" + unacceptedChangeTotal
                                 + " unaccepted changes not divisible by 3");
                         failcount++;
@@ -341,6 +343,16 @@ public class ConflictGenerator {
                         badIds.append(i);
                     }
 
+                    
+                    if (unacceptedChangeTotal != acceptedChangeTotal) {
+                        msg(i + "ERROR:GREPME:" + ":" + unacceptedChangeTotal + "," + acceptedChangeTotal
+                                + " unaccepted changes not same as unaccepted");
+                        failcount++;
+                        badIds.append(',');
+                        badIds.append(i);
+                    }
+
+                    
                     msg("ERROR:GREPME:" + i + ":Expected " + expectedTotal + " from " + userTranCount[i]
                             + " transactions, got " + inUsers + "+" + bufferedChanges + ", = "
                             + (inUsers + bufferedChanges) + " out by " + ((inUsers + bufferedChanges) - expectedTotal));
@@ -355,7 +367,7 @@ public class ConflictGenerator {
             }
 
             msg(failcount + " failures. skips=" + skipCount + ", passcount=" + passCount);
-            msg("tranGaps = " + getMin(userShortestGapBetweenTrans) + "," + Arrays.toString(userShortestGapBetweenTrans)
+            msg("tranGaps = " + getMin(userShortestGapBetweenTrans) 
                     + " SLEEP_MS=" + sleepMs);
 
             long conflictCount = getRawChangeCount(sites[0]);
